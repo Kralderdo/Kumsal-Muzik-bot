@@ -9,7 +9,7 @@ lyricsgenius
 motor
 psutil
 pytube
-py-tgcaplls
+py-tgcalls
 python-dotenv
 httpx[http2]==0.27.2
 pyyaml

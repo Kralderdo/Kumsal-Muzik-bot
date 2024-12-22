@@ -17,7 +17,7 @@ from ..logging import LOGGER
 from pyrogram.enums import ChatMemberStatus
 
 
-class AlexaBot(Client):
+class AlexaMusic(Client):
 
 private_commands = [
     BotCommand("start", "🎧 Botu başlatır"),

@@ -1,26 +1,26 @@
-aiofiller
+aiofiles
 aiohttp
-güzelçorba4
+beautifulsoup4
 dnspython
 ffmpeg-python
 gitpython
 hachoir
-heroku3 == 5.1.4
-httpx [ http2 ] == 0.27.0
-şarkı sözleridehası
+heroku3==5.1.4
+httpx[http2]==0.27.0
+lyricsgenius
 motor
-ntgçağrıları
-yastık
+ntgcalls
+pillow
 psutil
-py-tgcalls == 2.0.6
-pyklavye
+py-tgcalls==2.0.6
+pykeyboard
 https://github.com/KurimuzonAkuma/pyrogram/archive/v2.1.33.zip
 python-dotenv
 pyyaml
-istekler
-hız testi-cli
-benekli
-TgCrypto >= 1.2.5
-unide kodu
+requests
+speedtest-cli
+spotipy
+TgCrypto>=1.2.5
+unidecode
 yt-dlp
-youtube-arama-python
+youtube-search-python

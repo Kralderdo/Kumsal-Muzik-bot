@@ -1,27 +1,26 @@
-asyncio
+aiofiller
 aiohttp
-beautifulsoup4
+güzelçorba4
 dnspython
 ffmpeg-python
 gitpython
-heroku3
-lyricsgenius
+hachoir
+heroku3 == 5.1.4
+httpx [ http2 ] == 0.27.0
+şarkı sözleridehası
 motor
+ntgçağrıları
+yastık
 psutil
-pytube
-py-tgcalls
+py-tgcalls == 2.0.6
+pyklavye
+https://github.com/KurimuzonAkuma/pyrogram/archive/v2.1.33.zip
 python-dotenv
-httpx[http2]==0.27.2
 pyyaml
-requests
-speedtest-cli
-spotipy
-urllib3
-uvloop
-flask
-gunicorn
-youtube-search-python
+istekler
+hız testi-cli
+benekli
+TgCrypto >= 1.2.5
+unide kodu
 yt-dlp
-git+https://github.com/KurimuzonAkuma/pyrogram
-git+https://github.com/Vivekkumar-IN/pykeyboard
-git+https://github.com/TelegramPlayGround/pyrogram-tgcrypto
+youtube-arama-python

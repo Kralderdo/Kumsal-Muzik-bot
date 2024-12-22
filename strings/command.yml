@@ -48,7 +48,7 @@ DELSUDO_COMMAND : ["delsudo", "rmsudo"]
 SUDOUSERS_COMMAND : ["sudolist", "listsudo"]
 
 #Broadcast 
-BROADCAST_COMMAND : ["nana", "gcast"]
+BROADCAST_COMMAND : ["reklam", "gcast"]
 
 #Blacklist chat
 BLACKLISTCHAT_COMMAND : ["blacklistchat", "blchat"]

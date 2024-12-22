@@ -39,7 +39,7 @@ class AlexaBot(Client):
         self.mention = get_me.mention
         try:
             await self.send_message(
-                config.LOG_GROUP_ID, "https://envs.sh/7cB.mp4..."
+                config.LOG_GROUP_ID, "https://envs.sh/7cB.mp4"
             )
         except:
             LOGGER(__name__).error(

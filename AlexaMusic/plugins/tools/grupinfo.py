@@ -4,7 +4,7 @@ from asyncio import sleep
 from pyrogram import Client, filters
 from pyrogram import enums, filters
 
-from LostMuzik import app
+from AlexaMusic import app
 
 @app.on_message(~filters.private & filters.command(["info"]), group=2)
 async def instatus(app, message):

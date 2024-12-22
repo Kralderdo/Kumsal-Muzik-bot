@@ -18,7 +18,7 @@ from ..logging import LOGGER
 from pyrogram.enums import ChatMemberStatus
 
 
-class Alexabot(Client):
+class AlexaBot(Client):
     def __init__(self):
         super().__init__(
             "MusicBot",

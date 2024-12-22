@@ -12,13 +12,12 @@ as you want or you can collabe if you have new ideas.
 import sys
 
 from pyrogram import Client
-from pyrogram.enums import ChatMemberStatus
-from pyrogram.types import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeAllGroupChats
-
 import config
-
 from ..logging import LOGGER
+from pyrogram.enums import ChatMemberStatus
 
+
+class AlexaBot(Client):
 
 private_commands = [
     BotCommand("start", "🎧 Botu başlatır"),

@@ -1,190 +1,67 @@
 # Copyright (C) 2024 by Alexa_Help @ Github
-# Düzenlenmiş sürüm © 2025 Kralderdo - Dervedero
+# Edited by @Kralderdo for Kumsal-Muzik-bot
 
 import asyncio
-from pyrogram import enums, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from youtubesearchpython.__future__ import VideosSearch
+from pyrogram import filters, Client
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from AlexaMusic import app
+from AlexaMusic.utils.decorators.language import language
 
-import config
-from config import BANNED_USERS
-from config.config import OWNER_ID
-from strings import get_command, get_string
-from AlexaMusic import Telegram, YouTube, app
-from AlexaMusic.misc import SUDOERS
-from AlexaMusic.plugins.play.playlist import del_plist_msg
-from AlexaMusic.plugins.sudo.sudoers import sudoers_list
-from AlexaMusic.utils.database import (
-    add_served_chat,
-    is_served_user,
-    add_served_user,
-    blacklisted_chats,
-    get_assistant,
-    get_lang,
-    get_userss,
-    is_on_off,
-    is_served_private_chat,
-)
-from AlexaMusic.utils.decorators.language import LanguageStart
-from AlexaMusic.utils.inline import help_pannel, private_panel, start_pannel
-from AlexaMusic.utils.command import commandpro
+# OWNER listesi .env veya config.py'den geliyor
+from config import OWNER_ID
 
-loop = asyncio.get_running_loop()
-OWNER_LINK = "https://t.me/derveder"
-
-@app.on_message(
-    filters.command(get_command("START_COMMAND")) & filters.private & ~BANNED_USERS
-)
-@LanguageStart
-async def start_comm(client, message: Message, _):
-    await add_served_user(message.from_user.id)
-    if len(message.text.split()) > 1:
-        name = message.text.split(None, 1)[1]
-        if name.startswith("help"):
-            keyboard = help_pannel(_)
-            return await message.reply_text(_["help_1"], reply_markup=keyboard)
-
-        if name.startswith("song"):
-            return await message.reply_text(_["song_2"])
-
-        if name.startswith("sta"):
-            m = await message.reply_text(f"🎧 İstatistikleriniz hazırlanıyor...")
-            stats = await get_userss(message.from_user.id)
-            if not stats:
-                await asyncio.sleep(1)
-                return await m.edit(_["ustats_1"])
-
-            def get_stats():
-                msg = ""
-                limit = 0
-                results = {}
-                for i in stats:
-                    top_list = stats[i]["spot"]
-                    results[str(i)] = top_list
-                list_arranged = dict(
-                    sorted(results.items(), key=lambda item: item[1], reverse=True)
-                )
-                tota = 0
-                videoid = None
-                for vidid, count in list_arranged.items():
-                    tota += count
-                    if limit >= 10:
-                        continue
-                    if limit == 0:
-                        videoid = vidid
-                    limit += 1
-                    details = stats.get(vidid)
-                    title = (details["title"][:35]).title()
-                    msg += f"🎵 [{title}](https://www.youtube.com/watch?v={vidid}) **{count} kez çalındı**\n\n"
-                msg = _["ustats_2"].format(len(stats), tota, limit) + msg
-                return videoid, msg
-
-            try:
-                videoid, msg = await loop.run_in_executor(None, get_stats)
-            except Exception as e:
-                print(e)
-                return
-            thumbnail = await YouTube.thumbnail(videoid, True)
-            if not thumbnail:
-                thumbnail = "assets/default.jpg"
-            await m.delete()
-            await message.reply_photo(photo=thumbnail, caption=msg)
-            return
-
-        if name.startswith("sud"):
-            await sudoers_list(client=client, message=message, _=_)
-            return
-
-        if name.startswith("lyr"):
-            query = str(name).replace("lyrics_", "", 1)
-            lyrical = config.lyrical
-            lyrics = lyrical.get(query)
-            if lyrics:
-                return await Telegram.send_split_text(message, lyrics)
-            else:
-                return await message.reply_text("Şarkı sözleri alınamadı.")
-
-        if name.startswith("del"):
-            await del_plist_msg(client=client, message=message, _=_)
-
-        if name.startswith("inf"):
-            m = await message.reply_text("🔎 Bilgi getiriliyor...")
-            query = str(name).replace("info_", "", 1)
-            query = f"https://www.youtube.com/watch?v={query}"
-            results = VideosSearch(query, limit=1)
-            for result in (await results.next())["result"]:
-                title = result["title"]
-                duration = result["duration"]
-                views = result["viewCount"]["short"]
-                thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-                channel = result["channel"]["name"]
-                link = result["link"]
-                published = result["publishedTime"]
-            searched_text = f"""
-🎧 **Parça Bilgisi**
-
-📌 **Başlık:** {title}
-⏳ **Süre:** {duration}
-👀 **Görüntülenme:** {views}
-⏰ **Yayın:** {published}
-🎥 **Kanal:** {channel}
-🔗 **Bağlantı:** [YouTube'da Dinle]({link})
-
-👑 [Sahip]({OWNER_LINK})
-"""
-            key = InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton("🎧 Dinle", url=link),
-                        InlineKeyboardButton("Kapat", callback_data="close"),
-                    ],
-                ]
-            )
-            await m.delete()
-            await app.send_photo(
-                message.chat.id,
-                photo=thumbnail,
-                caption=searched_text,
-                parse_mode=enums.ParseMode.MARKDOWN,
-                reply_markup=key,
-            )
-    else:
-        try:
-            await app.resolve_peer(OWNER_ID[0])
-            OWNER = OWNER_ID[0]
-        except:
-            OWNER = None
-
-        me = await app.get_me()
-        username = me.username or "Kumsal_MuzikBot"
-        out = await private_panel(_, username, OWNER)
-
-        if config.START_IMG_URL:
-            try:
-                await message.reply_photo(
-                    photo=config.START_IMG_URL,
-                    caption=_["start_2"].format(config.MUSIC_BOT_NAME),
-                    reply_markup=InlineKeyboardMarkup(out),
-                )
-            except:
-                await message.reply_text(
-                    _["start_2"].format(config.MUSIC_BOT_NAME),
-                    reply_markup=InlineKeyboardMarkup(out),
-                )
-        else:
-            await message.reply_text(
-                _["start_2"].format(config.MUSIC_BOT_NAME),
-                reply_markup=InlineKeyboardMarkup(out),
-            )
+# ----------------------------------------------------------
+# Özel buton paneli
+# ----------------------------------------------------------
+def private_panel(_, username, owner_id):
+    buttons = [
+        [
+            InlineKeyboardButton("🎶 Müzik Oynat", callback_data="open_play"),
+            InlineKeyboardButton("📜 Komutlar", callback_data="help_menu")
+        ],
+        [
+            InlineKeyboardButton("💬 Destek Grubu", url="https://t.me/sohbetpusulaa"),
+            InlineKeyboardButton("📢 Kanal", url="https://t.me/TempoDestek")
+        ],
+        [
+            InlineKeyboardButton("👑 Sahip", user_id=int(owner_id[0]) if isinstance(owner_id, list) else int(owner_id))
+        ]
+    ]
+    return InlineKeyboardMarkup(buttons)
 
 
-@app.on_message(
-    filters.command(get_command("START_COMMAND")) & filters.group & ~BANNED_USERS
-)
-@LanguageStart
-async def testbot(client, message: Message, _):
-    out = await start_pannel(_)
-    return await message.reply_text(
-        _["start_1"].format(message.chat.title, config.MUSIC_BOT_NAME),
-        reply_markup=InlineKeyboardMarkup(out),
+# ----------------------------------------------------------
+# /start komutu
+# ----------------------------------------------------------
+@app.on_message(filters.command("start") & filters.private)
+@language
+async def start_comm(_, message, language):
+    try:
+        user = message.from_user
+        username = user.username or user.first_name
+
+        # private_panel artık await edilmiyor!
+        out = private_panel(_, username, OWNER_ID)
+
+        await message.reply_text(
+            f"🎧 **Kumsal Müzik Bot'a Hoş Geldin {username}!**\n\n"
+            "Ben Telegram gruplarında ve özel sohbetlerde müzik çalabilirim.\n"
+            "Başlamak için menüden bir seçenek seç 💫",
+            reply_markup=out
+        )
+    except Exception as e:
+        await message.reply_text(f"⚠️ Bir hata oluştu:\n`{e}`")
+
+
+# ----------------------------------------------------------
+# Grup içi start mesajı
+# ----------------------------------------------------------
+@app.on_message(filters.command("start") & filters.group)
+async def group_start(_, message):
+    await message.reply_text(
+        "🎵 **Kumsal Müzik aktif!**\n"
+        "Sesli sohbette müzik çalmak için /play komutunu kullan.",
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("📢 Destek Kanalı", url="https://t.me/TempoDestek")]]
+        )
     )

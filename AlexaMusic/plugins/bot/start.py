@@ -1,13 +1,5 @@
-# Copyright (C) 2024 by Alexa_Help @ Github, < https://github.com/TheTeamAlexa >
-# Subscribe On YT < Jankari Ki Duniya >. All rights reserved. © Alexa © Yukki.
-
-"""
-TheTeamAlexa is a project of Telegram bots with variety of purposes.
-Copyright (c) 2024 -present Team Alexa.
-
-This program is free software: you can redistribute it and can modify
-as you want or you can collab if you have new ideas.
-"""
+# Copyright (C) 2024 by Alexa_Help @ Github
+# Düzenlenmiş sürüm © 2025 Kralderdo - Dervedero
 
 import asyncio
 from pyrogram import enums, filters
@@ -38,8 +30,7 @@ from AlexaMusic.utils.inline import help_pannel, private_panel, start_pannel
 from AlexaMusic.utils.command import commandpro
 
 loop = asyncio.get_running_loop()
-
-CHANNEL_LINK = "https://t.me/sesizlikkkDusmanimizzzz"
+OWNER_LINK = "https://t.me/derveder"
 
 @app.on_message(
     filters.command(get_command("START_COMMAND")) & filters.private & ~BANNED_USERS
@@ -52,12 +43,12 @@ async def start_comm(client, message: Message, _):
         if name.startswith("help"):
             keyboard = help_pannel(_)
             return await message.reply_text(_["help_1"], reply_markup=keyboard)
+
         if name.startswith("song"):
             return await message.reply_text(_["song_2"])
+
         if name.startswith("sta"):
-            m = await message.reply_text(
-                f"🥱 Kişisel istatistikleriniz alınıyor {config.MUSIC_BOT_NAME} sunucusunda..."
-            )
+            m = await message.reply_text(f"🎧 İstatistikleriniz hazırlanıyor...")
             stats = await get_userss(message.from_user.id)
             if not stats:
                 await asyncio.sleep(1)
@@ -84,10 +75,7 @@ async def start_comm(client, message: Message, _):
                     limit += 1
                     details = stats.get(vidid)
                     title = (details["title"][:35]).title()
-                    if vidid == "telegram":
-                        msg += f"🔗[Telegram Medya]({CHANNEL_LINK}) **{count} kez çalındı.**\n\n"
-                    else:
-                        msg += f"🔗 [{title}](https://www.youtube.com/watch?v={vidid}) **{count} kez çalındı.**\n\n"
+                    msg += f"🎵 [{title}](https://www.youtube.com/watch?v={vidid}) **{count} kez çalındı**\n\n"
                 msg = _["ustats_2"].format(len(stats), tota, limit) + msg
                 return videoid, msg
 
@@ -105,13 +93,6 @@ async def start_comm(client, message: Message, _):
 
         if name.startswith("sud"):
             await sudoers_list(client=client, message=message, _=_)
-            if await is_on_off(config.LOG):
-                sender_id = message.from_user.id
-                sender_name = message.from_user.first_name
-                return await app.send_message(
-                    config.LOG_GROUP_ID,
-                    f"{message.from_user.mention} bir sudo komutu başlattı.\n\n**ID:** {sender_id}\n**Ad:** {sender_name}",
-                )
             return
 
         if name.startswith("lyr"):
@@ -128,7 +109,7 @@ async def start_comm(client, message: Message, _):
 
         if name.startswith("inf"):
             m = await message.reply_text("🔎 Bilgi getiriliyor...")
-            query = (str(name)).replace("info_", "", 1)
+            query = str(name).replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
             results = VideosSearch(query, limit=1)
             for result in (await results.next())["result"]:
@@ -139,24 +120,23 @@ async def start_comm(client, message: Message, _):
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
-
             searched_text = f"""
-😲 **Parça Bilgisi**
+🎧 **Parça Bilgisi**
 
 📌 **Başlık:** {title}
 ⏳ **Süre:** {duration}
 👀 **Görüntülenme:** {views}
 ⏰ **Yayın:** {published}
 🎥 **Kanal:** {channel}
-🔗 **Bağlantı:** [Dinle]({link})
+🔗 **Bağlantı:** [YouTube'da Dinle]({link})
 
-💖 Güç: [{config.MUSIC_BOT_NAME}]({CHANNEL_LINK})
+👑 [Sahip]({OWNER_LINK})
 """
             key = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text="🎧 Dinle", url=link),
-                        InlineKeyboardButton(text="Kapat", callback_data="close"),
+                        InlineKeyboardButton("🎧 Dinle", url=link),
+                        InlineKeyboardButton("Kapat", callback_data="close"),
                     ],
                 ]
             )
@@ -168,7 +148,6 @@ async def start_comm(client, message: Message, _):
                 parse_mode=enums.ParseMode.MARKDOWN,
                 reply_markup=key,
             )
-
     else:
         try:
             await app.resolve_peer(OWNER_ID[0])
@@ -177,8 +156,8 @@ async def start_comm(client, message: Message, _):
             OWNER = None
 
         me = await app.get_me()
-        username = me.username or config.MUSIC_BOT_NAME
-        out = private_panel(_, username, OWNER)
+        username = me.username or "Kumsal_MuzikBot"
+        out = await private_panel(_, username, OWNER)
 
         if config.START_IMG_URL:
             try:
@@ -197,13 +176,6 @@ async def start_comm(client, message: Message, _):
                 _["start_2"].format(config.MUSIC_BOT_NAME),
                 reply_markup=InlineKeyboardMarkup(out),
             )
-        if await is_on_off(config.LOG):
-            sender_id = message.from_user.id
-            sender_name = message.from_user.first_name
-            await app.send_message(
-                config.LOG_GROUP_ID,
-                f"{message.from_user.mention} botu başlattı.\n\n**ID:** {sender_id}\n**Ad:** {sender_name}",
-            )
 
 
 @app.on_message(
@@ -211,24 +183,8 @@ async def start_comm(client, message: Message, _):
 )
 @LanguageStart
 async def testbot(client, message: Message, _):
-    out = start_pannel(_)
+    out = await start_pannel(_)
     return await message.reply_text(
         _["start_1"].format(message.chat.title, config.MUSIC_BOT_NAME),
         reply_markup=InlineKeyboardMarkup(out),
     )
-
-
-welcome_group = 2
-
-
-@app.on_message(filters.new_chat_members, group=welcome_group)
-async def welcome(client, message: Message):
-    chat_id = message.chat.id
-    if config.PRIVATE_BOT_MODE == str(True):
-        if not await is_served_private_chat(message.chat.id):
-            await message.reply_text(
-                "**Özel Müzik Botu**\n\nBu bot sadece yetkili sohbetlerde çalışır. Yetkilendirme için [sahip](https://t.me/sesizlikkkDusmanimizzzz) ile iletişime geç."
-            )
-            return await app.leave_chat(message.chat.id)
-    else:
-        await add_served_chat(chat_id)

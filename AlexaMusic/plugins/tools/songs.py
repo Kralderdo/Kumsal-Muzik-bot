@@ -26,6 +26,7 @@ SONG_COMMAND = get_command("SONG_COMMAND")
 BOT_USERNAME = "prenses_muzik_bot"
 OWNER_LINK = "https://t.me/derveder"
 
+
 # ────────────────────────────────
 # 🎵 Grup Komutu
 # ────────────────────────────────
@@ -33,14 +34,12 @@ OWNER_LINK = "https://t.me/derveder"
 @language
 async def song_commad_group(client, message: Message, _):
     upl = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(
-                    text=_["SG_B_1"],
-                    url=f"https://t.me/{BOT_USERNAME}?start=song",
-                ),
-            ]
-        ]
+        [[
+            InlineKeyboardButton(
+                text=_["SG_B_1"],
+                url=f"https://t.me/{BOT_USERNAME}?start=song",
+            )
+        ]]
     )
     await message.reply_text(_["song_1"], reply_markup=upl)
 
@@ -170,7 +169,7 @@ async def song_helper_cb(client, CallbackQuery, _):
 
 
 # ────────────────────────────────
-# ⬇️ Şarkı İndirme
+# ⬇️ Şarkı İndirme (Çerezli yt-dlp)
 # ────────────────────────────────
 @app.on_callback_query(filters.regex(pattern=r"song_download") & ~BANNED_USERS)
 @languageCB
@@ -186,11 +185,15 @@ async def song_download_cb(client, CallbackQuery, _):
     mystic = await CallbackQuery.edit_message_text(_["song_8"])
     yturl = f"https://www.youtube.com/watch?v={vidid}"
 
-    with yt_dlp.YoutubeDL({"quiet": True}) as ytdl:
+    # ✅ Çerezli yt-dlp ayarı
+    cookies_file = os.getenv("YT_COOKIES", "cookies.txt")
+    ydl_opts = {"quiet": True, "cookiefile": cookies_file}
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ytdl:
         x = ytdl.extract_info(yturl, download=False)
 
     title = (x["title"]).title()
-    title = re.sub(r"\W+", " ", title)  # ✅ düzeltildi
+    title = re.sub(r"\W+", " ", title)
     duration = x.get("duration", 0)
     performer = x.get("uploader", "YouTube")
 
@@ -212,10 +215,7 @@ async def song_download_cb(client, CallbackQuery, _):
             supports_streaming=True,
         )
         await mystic.edit_text(_["song_11"])
-        await app.send_chat_action(
-            chat_id=CallbackQuery.message.chat.id,
-            action=enums.ChatAction.UPLOAD_VIDEO,
-        )
+        await app.send_chat_action(chat_id=CallbackQuery.message.chat.id, action=enums.ChatAction.UPLOAD_VIDEO)
         try:
             await CallbackQuery.edit_message_media(media=med)
         except Exception as e:
@@ -239,10 +239,7 @@ async def song_download_cb(client, CallbackQuery, _):
             performer=performer,
         )
         await mystic.edit_text(_["song_11"])
-        await app.send_chat_action(
-            chat_id=CallbackQuery.message.chat.id,
-            action=enums.ChatAction.UPLOAD_AUDIO,
-        )
+        await app.send_chat_action(chat_id=CallbackQuery.message.chat.id, action=enums.ChatAction.UPLOAD_AUDIO)
         try:
             await CallbackQuery.edit_message_media(media=med)
         except Exception as e:

@@ -1,4 +1,7 @@
+# Copyright (C) 2024 - Inflex Team
+# Düzenlenmiş sürüm © 2025 Kralderdo (Derdo)
 
+import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMembersFilter
 from pyrogram.errors import FloodWait
@@ -16,212 +19,143 @@ from InflexMusic.utils.decorators.language import language
 from InflexMusic.utils.formatters import alpha_to_int
 from config import adminlist
 
+# 🛰️ Broadcast durum değişkeni
 IS_BROADCASTING = False
 
 
-@app.on_message(filters.command("reklam") & SUDOERS)
+# ────────────────────────────────
+# 🎙️ REKLAM / BROADCAST Komutu
+# ────────────────────────────────
+@app.on_message(filters.command(["reklam", "broadcast"]) & SUDOERS)
 @language
-async def braodcast_message(client, message, _):
+async def broadcast_message(client, message, _):
     global IS_BROADCASTING
 
-    if "-wfchat" in message.text or "-wfuser" in message.text:
-        if not message.reply_to_message or not (message.reply_to_message.photo or message.reply_to_message.text):
-            return await message.reply_text("<b>𝖤𝗑𝖺𝗆𝗉𝗅𝖾 :</b>\n\n/broadcast [ 𝖬𝖾𝗌𝗌𝖺𝗀𝖾 𝖮𝗋 𝖱𝖾𝗉𝗅𝗒 𝖳𝗈 𝖠 𝖬𝖾𝗌𝗌𝖺𝗀𝖾 ]")
+    if IS_BROADCASTING:
+        return await message.reply_text("⚠️ Zaten bir broadcast işlemi devam ediyor.")
 
-        # Extract Data From The Replied Message
-        if message.reply_to_message.photo:
-            content_type = 'photo'
-            file_id = message.reply_to_message.photo.file_id
-        else:
-            content_type = 'text'
-            text_content = message.reply_to_message.text
+    if not message.reply_to_message and len(message.command) < 2:
+        return await message.reply_text("<b>Kullanım:</b> /reklam [mesaj veya yanıtla]")
 
-        caption = message.reply_to_message.caption
-        reply_markup = message.reply_to_message.reply_markup if hasattr(message.reply_to_message, 'reply_markup') else None
-
-        IS_BROADCASTING = True
-        await message.reply_text(_["broad_1"])
-
-        if "-wfchat" in message.text or "-wfuser" in message.text:
-            # Broadcasting to chats
-            sent_chats = 0
-            chats = [int(chat["chat_id"]) for chat in await get_served_chats()]
-            for i in chats:
-                try:
-                    if content_type == 'photo':
-                        await app.send_photo(chat_id=i, photo=file_id, caption=caption, reply_markup=reply_markup)
-                    else:
-                        await app.send_message(chat_id=i, text=text_content, reply_markup=reply_markup)
-                    sent_chats += 1
-                    await asyncio.sleep(0.2)
-                except FloodWait as fw:
-                    await asyncio.sleep(fw.x)
-                except:
-                    continue
-            await message.reply_text(f"» 𝖡𝗋𝗈𝖺𝖽𝖼𝖺𝗌𝗍𝖾𝖽 𝖬𝖾𝗌𝗌𝖺𝗀𝖾𝗌 𝖳𝗈 {sent_chats}  𝖢𝗁𝖺𝗍𝗌 .")
-
-        if "-wfuser" in message.text:
-            # Broadcasting to users
-            sent_users = 0
-            users = [int(user["user_id"]) for user in await get_served_users()]
-            for i in users:
-                try:
-                    if content_type == 'photo':
-                        await app.send_photo(chat_id=i, photo=file_id, caption=caption, reply_markup=reply_markup)
-                    else:
-                        await app.send_message(chat_id=i, text=text_content, reply_markup=reply_markup)
-                    sent_users += 1
-                    await asyncio.sleep(0.2)
-                except FloodWait as fw:
-                    await asyncio.sleep(fw.x)
-                except:
-                    continue
-            await message.reply_text(f"» 𝖡𝗋𝗈𝖺𝖽𝖼𝖺𝗌𝗍𝖾𝖽 𝖬𝖾𝗌𝗌𝖺𝗀𝖾𝗌 𝖳𝗈 {sent_users} 𝖴𝗌𝖾𝗋𝗌 .")
-
-        IS_BROADCASTING = False
-        return
-
-
+    # Mesaj türünü belirle
     if message.reply_to_message:
-        x = message.reply_to_message.id
-        y = message.chat.id
+        if message.reply_to_message.photo:
+            content_type = "photo"
+            file_id = message.reply_to_message.photo.file_id
+            caption = message.reply_to_message.caption or ""
+        else:
+            content_type = "text"
+            text_content = message.reply_to_message.text
+            caption = None
+        reply_markup = getattr(message.reply_to_message, "reply_markup", None)
     else:
-        if len(message.command) < 2:
-            return await message.reply_text(_["broad_2"])
-        query = message.text.split(None, 1)[1]
-        if "-pin" in query:
-            query = query.replace("-pin", "")
-        if "-nobot" in query:
-            query = query.replace("-nobot", "")
-        if "-pinloud" in query:
-            query = query.replace("-pinloud", "")
-        if "-assistant" in query:
-            query = query.replace("-assistant", "")
-        if "-user" in query:
-            query = query.replace("-user", "")
-        if query == "":
-            return await message.reply_text(_["broad_8"])
+        content_type = "text"
+        text_content = " ".join(message.command[1:])
+        caption = None
+        reply_markup = None
 
     IS_BROADCASTING = True
     await message.reply_text(_["broad_1"])
 
-    if "-nobot" not in message.text:
-        sent = 0
-        pin = 0
-        chats = []
-        schats = await get_served_chats()
-        for chat in schats:
-            chats.append(int(chat["chat_id"]))
-        for i in chats:
+    # 🔸 Broadcast hedefleri belirleniyor
+    to_chats = "-wfchat" in message.text or "-wfuser" in message.text or "-chat" in message.text
+    to_users = "-wfuser" in message.text or "-user" in message.text
+    to_assistants = "-assistant" in message.text
+
+    total_sent = 0
+
+    # ────────────────────────────────
+    # 🏘️ Grup Yayını
+    # ────────────────────────────────
+    if to_chats or "-nobot" not in message.text:
+        sent_chats = 0
+        chats = [int(c["chat_id"]) for c in await get_served_chats()]
+        for chat_id in chats:
             try:
-                m = (
-                    await app.forward_messages(i, y, x)
-                    if message.reply_to_message
-                    else await app.send_message(i, text=query)
-                )
-                if "-pin" in message.text:
-                    try:
-                        await m.pin(disable_notification=True)
-                        pin += 1
-                    except:
-                        continue
-                elif "-pinloud" in message.text:
-                    try:
-                        await m.pin(disable_notification=False)
-                        pin += 1
-                    except:
-                        continue
-                sent += 1
+                if content_type == "photo":
+                    await app.send_photo(chat_id, photo=file_id, caption=caption, reply_markup=reply_markup)
+                else:
+                    await app.send_message(chat_id, text=text_content, reply_markup=reply_markup)
+                sent_chats += 1
+                total_sent += 1
                 await asyncio.sleep(0.2)
             except FloodWait as fw:
-                flood_time = int(fw.value)
-                if flood_time > 200:
-                    continue
-                await asyncio.sleep(flood_time)
-            except:
+                await asyncio.sleep(fw.value)
+            except Exception:
                 continue
-        try:
-            await message.reply_text(_["broad_3"].format(sent, pin))
-        except:
-            pass
+        await message.reply_text(f"✅ {sent_chats} sohbet grubuna mesaj gönderildi.")
 
-    if "-user" in message.text:
-        susr = 0
-        served_users = []
-        susers = await get_served_users()
-        for user in susers:
-            served_users.append(int(user["user_id"]))
-        for i in served_users:
+    # ────────────────────────────────
+    # 👤 Kullanıcılara Yayın
+    # ────────────────────────────────
+    if to_users:
+        sent_users = 0
+        users = [int(u["user_id"]) for u in await get_served_users()]
+        for user_id in users:
             try:
-                m = (
-                    await app.forward_messages(i, y, x)
-                    if message.reply_to_message
-                    else await app.send_message(i, text=query)
-                )
-                susr += 1
+                if content_type == "photo":
+                    await app.send_photo(user_id, photo=file_id, caption=caption, reply_markup=reply_markup)
+                else:
+                    await app.send_message(user_id, text=text_content, reply_markup=reply_markup)
+                sent_users += 1
+                total_sent += 1
                 await asyncio.sleep(0.2)
             except FloodWait as fw:
-                flood_time = int(fw.value)
-                if flood_time > 200:
-                    continue
-                await asyncio.sleep(flood_time)
-            except:
-                pass
-        try:
-            await message.reply_text(_["broad_4"].format(susr))
-        except:
-            pass
+                await asyncio.sleep(fw.value)
+            except Exception:
+                continue
+        await message.reply_text(f"✅ {sent_users} kullanıcıya mesaj gönderildi.")
 
-    if "-assistant" in message.text:
-        aw = await message.reply_text(_["broad_5"])
-        text = _["broad_6"]
+    # ────────────────────────────────
+    # 🤖 Asistanlara Yayın
+    # ────────────────────────────────
+    if to_assistants:
         from InflexMusic.core.userbot import assistants
-
+        await message.reply_text("📡 Asistanlar üzerinden yayın başlatılıyor...")
+        text = ""
         for num in assistants:
             sent = 0
             client = await get_client(num)
             async for dialog in client.get_dialogs():
                 try:
-                    await client.forward_messages(
-                        dialog.chat.id, y, x
-                    ) if message.reply_to_message else await client.send_message(
-                        dialog.chat.id, text=query
-                    )
+                    if content_type == "photo":
+                        await client.send_photo(dialog.chat.id, photo=file_id, caption=caption)
+                    else:
+                        await client.send_message(dialog.chat.id, text=text_content)
                     sent += 1
+                    total_sent += 1
                     await asyncio.sleep(3)
                 except FloodWait as fw:
-                    flood_time = int(fw.value)
-                    if flood_time > 200:
-                        continue
-                    await asyncio.sleep(flood_time)
-                except:
+                    await asyncio.sleep(fw.value)
+                except Exception:
                     continue
-            text += _["broad_7"].format(num, sent)
-        try:
-            await aw.edit_text(text)
-        except:
-            pass
+            text += f"✅ Asistan {num} → {sent} sohbet\n"
+        await message.reply_text(text)
+
     IS_BROADCASTING = False
+    await message.reply_text(f"🎯 Broadcast tamamlandı!\nToplam gönderilen: {total_sent}")
 
 
+# ────────────────────────────────
+# 🧹 Otomatik Yönetici Güncelleme
+# ────────────────────────────────
 async def auto_clean():
-    while not await asyncio.sleep(10):
+    while True:
         try:
             served_chats = await get_active_chats()
             for chat_id in served_chats:
                 if chat_id not in adminlist:
                     adminlist[chat_id] = []
-                    async for user in app.get_chat_members(
-                        chat_id, filter=ChatMembersFilter.ADMINISTRATORS
-                    ):
-                        if user.privileges.can_manage_video_chats:
+                    async for user in app.get_chat_members(chat_id, filter=ChatMembersFilter.ADMINISTRATORS):
+                        if user.privileges and user.privileges.can_manage_video_chats:
                             adminlist[chat_id].append(user.user.id)
                     authusers = await get_authuser_names(chat_id)
                     for user in authusers:
                         user_id = await alpha_to_int(user)
                         adminlist[chat_id].append(user_id)
-        except:
-            continue
+        except Exception:
+            await asyncio.sleep(10)
+        await asyncio.sleep(10)
 
 
 asyncio.create_task(auto_clean())
